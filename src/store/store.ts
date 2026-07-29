@@ -3,9 +3,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { persistStore, persistReducer } from "redux-persist";
 import { combineReducers } from "redux";
 import userDetailsReducer from "./userDetails";
+import { onboardingApi } from "@/services/onboarding.services";
 
 const rootReducer = combineReducers({
   user: userDetailsReducer,
+  [onboardingApi.reducerPath]: onboardingApi.reducer,
 });
 
 const persistConfig = {
@@ -22,7 +24,7 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: false,
       immutableCheck: false,
-    }).concat(),
+    }).concat(onboardingApi.middleware),
 });
 
 export const persistor = persistStore(store);

@@ -5,6 +5,8 @@ import { PersistGate } from "redux-persist/integration/react";
 import { useFonts } from "expo-font";
 import { DarkTheme, DefaultTheme, Slot, ThemeProvider } from "expo-router";
 import { useColorScheme } from "react-native";
+import Toast from "react-native-toast-message";
+import toastConfig from "@/components/ui/CustomToast";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -31,6 +33,7 @@ export default function TabLayout() {
         >
           <Slot />
         </ThemeProvider>
+        <Toast config={toastConfig} />
       </PersistGate>
     </Provider>
   );

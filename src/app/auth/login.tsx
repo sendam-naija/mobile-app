@@ -9,21 +9,42 @@ import { AppButton } from "@/components/ui/AppButton";
 import { FormAppInput } from "@/components/ui/FormAppInput";
 import AppText from "@/components/ui/AppText";
 import AuthTemplate from "@/template/AuthTemplate";
+import useOnboarding from "@/hooks/useOnboarding";
+import { handleError, handleSuccess } from "@/helper/handleResponse";
+import { useDispatch } from "react-redux";
+import { saveToken, saveUserData } from "@/store/userDetails";
 
 interface LoginFormValues {
-  identity: string;
+  email: string;
   password: string;
 }
 
 export default function LoginScreen() {
+  const dispatch = useDispatch();
   const { control, handleSubmit } = useForm<LoginFormValues>({
     defaultValues: {
-      identity: "",
+      email: "",
       password: "",
     },
   });
+  const { logIn, isLogInLoading } = useOnboarding();
 
-  const onSubmit = (_values: LoginFormValues) => {};
+  const onSubmit = async (data: LoginFormValues) => {
+    try {
+      const res = await logIn(data).unwrap();
+
+      if (res?.success) {
+        dispatch(saveUserData(res?.data?.user));
+        dispatch(saveToken(res?.data?.accessToken));
+        handleSuccess("Login Successful!");
+        router.replace("/dashboard");
+      } else {
+        handleError(res?.message);
+      }
+    } catch (error) {
+      handleError(error);
+    }
+  };
 
   return (
     <AuthTemplate showBrandSpacing>
@@ -41,8 +62,8 @@ export default function LoginScreen() {
         <View className="mt-[13px] gap-[13px]">
           <FormAppInput
             control={control}
-            name="identity"
-            placeholder="Phone number or email"
+            name="email"
+            placeholder="Email"
             autoCapitalize="none"
             keyboardType="email-address"
           />
@@ -55,7 +76,11 @@ export default function LoginScreen() {
         </View>
 
         <View className="mt-[29px]">
-          <AppButton title="Log In" onPress={handleSubmit(onSubmit)} />
+          <AppButton
+            loading={isLogInLoading}
+            title="Log In"
+            onPress={handleSubmit(onSubmit)}
+          />
         </View>
 
         <View className="mt-[31px] items-center">

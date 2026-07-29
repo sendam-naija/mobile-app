@@ -8,7 +8,7 @@ type RootState = {
   };
 };
 
-const rawBaseQuery = fetchBaseQuery({
+export const rawBaseQuery = fetchBaseQuery({
   baseUrl: API_BASEURL,
   prepareHeaders: (headers, { getState }) => {
     headers.set("Content-Type", "application/json");

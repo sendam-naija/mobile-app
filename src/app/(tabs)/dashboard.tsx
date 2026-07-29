@@ -13,6 +13,8 @@ import {
 
 import { AppShell } from "@/components/app/AppShell";
 import AppText from "@/components/ui/AppText";
+import { useSelector } from "react-redux";
+import initializeName from "@/helper/initializeName";
 
 const palette = {
   ink: "#17362E",
@@ -53,6 +55,8 @@ const activities = [
 ];
 
 export default function DashboardScreen() {
+  const { userDetails } = useSelector((state: any) => state?.user);
+  console.log({ userDetails });
   return (
     <AppShell
       withBottomTabs={false}
@@ -70,7 +74,7 @@ export default function DashboardScreen() {
             className="mt-[3px]"
             style={{ color: palette.ink, lineHeight: 29 }}
           >
-            Good morning, Chiamaka
+            Good morning, {userDetails?.firstName}
           </AppText>
         </View>
 
@@ -81,7 +85,9 @@ export default function DashboardScreen() {
           onPress={() => router.push("/profile")}
         >
           <AppText font="SM" size={15} style={{ color: palette.ink }}>
-            CO
+            {initializeName(
+              `${userDetails?.firstName}  ${userDetails?.lastName}`,
+            )}
           </AppText>
         </Pressable>
       </View>
