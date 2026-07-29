@@ -1,3 +1,3 @@
-# Expo HAS CHANGED
+# SendAm
 
-Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before writing any code.
+Keep the app code small, typed, and focused on the product. Avoid reintroducing sample screens, tutorial copy, or unused assets.
