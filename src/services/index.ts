@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-const API_BASEURL = "https://dev-api.swisspay.africa/api/";
+const API_BASEURL = "https://sendam.onrender.com/api/v1/";
 
 type RootState = {
   user?: {
