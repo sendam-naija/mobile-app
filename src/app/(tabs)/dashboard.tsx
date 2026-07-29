@@ -55,8 +55,8 @@ const activities = [
 ];
 
 export default function DashboardScreen() {
-  const { userDetails } = useSelector((state: any) => state?.user);
-  console.log({ userDetails });
+  const { userDetails, token } = useSelector((state: any) => state?.user);
+  console.log({ token });
   return (
     <AppShell
       withBottomTabs={false}

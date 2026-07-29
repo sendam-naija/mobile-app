@@ -23,7 +23,9 @@ export function AppShell({
   backgroundColor = ThemeColors.white,
 }: AppShellProps) {
   const content = (
-    <View className={`flex-1 px-[19px] ${contentClassName}`}>{children}</View>
+    <View className={`flex-1 w-[90%] mx-auto ${contentClassName}`}>
+      {children}
+    </View>
   );
 
   return (

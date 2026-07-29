@@ -1,0 +1,33 @@
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { rawBaseQuery } from ".";
+
+export interface Bank {
+  name: string;
+  code?: string;
+  slug?: string;
+}
+
+interface BanksResponse {
+  data: Bank[];
+}
+
+export const userApi = createApi({
+  reducerPath: "userApi",
+  baseQuery: rawBaseQuery,
+  endpoints: (builder) => ({
+    getAllBanks: builder.query<BanksResponse, void>({
+      query: () => ({
+        url: "users/banks",
+      }),
+    }),
+    setSettlementBank: builder.mutation({
+      query: (body) => ({
+        url: "users/me/settlement-account",
+        method: "POST",
+        body,
+      }),
+    }),
+  }),
+});
+
+export const { useGetAllBanksQuery, useSetSettlementBankMutation } = userApi;
