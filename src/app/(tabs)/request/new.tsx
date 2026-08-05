@@ -10,11 +10,14 @@ import { ThemeColors } from "@/constant/theme";
 import AppButton from "@/components/ui/AppButton";
 import AppText from "@/components/ui/AppText";
 import { FormAppInput } from "@/components/ui/FormAppInput";
+import usePayments from "@/hooks/usePayments";
+import { handleError, handleSuccess } from "@/helper/handleResponse";
 
 interface RequestFormValues {
   title: string;
   amount: string;
   description: string;
+  expectedPayerName: string;
 }
 
 const formatAmount = (value: string) => {
@@ -23,32 +26,71 @@ const formatAmount = (value: string) => {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
+const getExpiryIso = () =>
+  new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
 export default function NewRequestScreen() {
   const { control, handleSubmit } = useForm<RequestFormValues>({
     defaultValues: {
       title: "",
       amount: "",
       description: "",
+      expectedPayerName: "",
     },
   });
+  const { createPaymentRequest, createPaymentRequestIsLoading } = usePayments();
 
-  const onSubmit = (values: RequestFormValues) => {
-    const reference = Math.random().toString(36).slice(2, 8).toUpperCase();
+  const onSubmit = async (values: RequestFormValues) => {
+    const amount = Number(values.amount.replace(/,/g, ""));
 
-    router.push({
-      pathname: "/request/created",
-      params: {
+    try {
+      const response = await createPaymentRequest({
         title: values.title.trim(),
-        amount: values.amount,
+        amount,
         description: values.description.trim(),
-        reference,
-      },
-    });
+        expectedPayerName: values.expectedPayerName.trim(),
+        allowMultiplePayers: false,
+        expiresAt: getExpiryIso(),
+      }).unwrap();
+
+      const requestId = response.data.id;
+      const requestReference = response.data.reference ?? requestId;
+      const paymentUrl =
+        response.data.link ?? `https://sendam.co/pay/${requestReference}`;
+
+      handleSuccess("Payment request created");
+      router.push({
+        pathname: "/request/created",
+        params: {
+          id: requestId,
+          title: response.data.title ?? values.title.trim(),
+          amount: formatAmount(String(response.data.amount ?? amount)),
+          description: response.data.description ?? values.description.trim(),
+          expectedPayerName:
+            response.data.expectedPayerName ?? values.expectedPayerName.trim(),
+          reference: requestReference,
+          paymentUrl,
+          status: response.data.status ?? "ACTIVE",
+          expiresAt: response.data.expiresAt ?? getExpiryIso(),
+        },
+      });
+    } catch (error) {
+      handleError(error);
+    }
   };
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: ThemeColors.white }}>
-      <TopBar title="New Request" showBack onBackPress={() => router.replace("/dashboard")} />
+    <SafeAreaView
+      className="flex-1"
+      style={{ backgroundColor: ThemeColors.white }}
+    >
+      <TopBar
+        title="New Request"
+        showBack
+        onBackPress={() => {
+          router.replace("/dashboard");
+        }}
+      />
       <ScrollView
         className="flex-1 px-[19px]"
         showsVerticalScrollIndicator={false}
@@ -88,14 +130,29 @@ export default function NewRequestScreen() {
           placeholder="For our dinner last night..."
           containerStyle={{ marginTop: 18 }}
         />
+        <FormAppInput
+          control={control}
+          name="expectedPayerName"
+          label="Expected payer name"
+          placeholder="e.g. Tunde Kola"
+          rules={{ required: true }}
+          containerStyle={{ marginTop: 18 }}
+        />
 
         <Pressable
           className="mt-[18px] h-[64px] flex-row items-center rounded-[14px] border px-[14px]"
-          style={{ borderColor: ThemeColors.aquaMint, backgroundColor: ThemeColors.mint }}
+          style={{
+            borderColor: ThemeColors.aquaMint,
+            backgroundColor: ThemeColors.mint,
+          }}
         >
           <TickCircle color={ThemeColors.primary} size={31} variant="Bold" />
           <View className="ml-[13px]">
-            <AppText font="SB" size={15} style={{ color: ThemeColors.deepGreen }}>
+            <AppText
+              font="SB"
+              size={15}
+              style={{ color: ThemeColors.deepGreen }}
+            >
               Let payer choose amount
             </AppText>
             <AppText font="SR" size={13} style={{ color: ThemeColors.sage }}>
@@ -107,6 +164,7 @@ export default function NewRequestScreen() {
         <View className="mt-[17px]">
           <AppButton
             title="Create Request"
+            loading={createPaymentRequestIsLoading}
             onPress={handleSubmit(onSubmit)}
           />
         </View>

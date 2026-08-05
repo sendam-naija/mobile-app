@@ -33,6 +33,13 @@ export const onboardingApi = createApi({
         body,
       }),
     }),
+    tokenRotation: builder.mutation({
+      query: (body) => ({
+        url: "auth/refresh",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -41,4 +48,5 @@ export const {
   useLogInMutation,
   useOtpRequestMutation,
   useOtpVerifyMutation,
+  useTokenRotationMutation,
 } = onboardingApi;

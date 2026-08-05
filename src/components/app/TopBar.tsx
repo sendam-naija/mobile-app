@@ -27,7 +27,10 @@ export function TopBar({ title, showBack = false, onBackPress }: TopBarProps) {
   return (
     <View
       className="h-[74px] flex-row items-center justify-center border-b"
-      style={{ borderColor: ThemeColors.mist, backgroundColor: ThemeColors.white }}
+      style={{
+        borderColor: ThemeColors.mist,
+        backgroundColor: ThemeColors.white,
+      }}
     >
       {showBack ? (
         <Pressable
@@ -36,7 +39,11 @@ export function TopBar({ title, showBack = false, onBackPress }: TopBarProps) {
           className="absolute left-[19px] h-[40px] w-[40px] items-center justify-center"
           onPress={handleBack}
         >
-          <ArrowLeft2 color={ThemeColors.deepGreen} size={22} variant="Linear" />
+          <ArrowLeft2
+            color={ThemeColors.deepGreen}
+            size={22}
+            variant="Linear"
+          />
         </Pressable>
       ) : null}
 
@@ -46,4 +53,3 @@ export function TopBar({ title, showBack = false, onBackPress }: TopBarProps) {
     </View>
   );
 }
-

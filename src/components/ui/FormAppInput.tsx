@@ -35,7 +35,9 @@ export function FormAppInput<TFieldValues extends FieldValues>({
         <AppInput
           value={String(value ?? "")}
           onBlur={onBlur}
-          onChangeText={(text) => onChange(formatValue ? formatValue(text) : text)}
+          onChangeText={(text) =>
+            onChange(formatValue ? formatValue(text) : text)
+          }
           {...inputProps}
         />
       )}

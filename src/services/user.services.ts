@@ -20,6 +20,13 @@ export const userApi = createApi({
         url: "users/banks",
       }),
     }),
+    validateAccount: builder.mutation({
+      query: (body) => ({
+        url: "users/me/settlement-account/resolve",
+        method: "POST",
+        body,
+      }),
+    }),
     setSettlementBank: builder.mutation({
       query: (body) => ({
         url: "users/me/settlement-account",
@@ -30,4 +37,8 @@ export const userApi = createApi({
   }),
 });
 
-export const { useGetAllBanksQuery, useSetSettlementBankMutation } = userApi;
+export const {
+  useGetAllBanksQuery,
+  useValidateAccountMutation,
+  useSetSettlementBankMutation,
+} = userApi;

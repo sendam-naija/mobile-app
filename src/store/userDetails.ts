@@ -4,6 +4,7 @@ const initialState = {
   userDetails: null,
   isAuthenticated: false,
   token: null,
+  refreshToken: null,
 };
 
 const userDataSlice = createSlice({
@@ -11,19 +12,25 @@ const userDataSlice = createSlice({
   initialState,
   reducers: {
     saveUserData: (state, action) => {
-      state.userDetails = action.payload;
+      state.userDetails = action.payload.user;
       state.isAuthenticated = true;
+      state.refreshToken = action.payload.refreshToken;
     },
     saveToken: (state, action) => {
       state.token = action.payload;
+    },
+    saveRefreshToken: (state, action) => {
+      state.refreshToken = action.payload;
     },
     logout: (state) => {
       state.userDetails = null;
       state.token = null;
       state.isAuthenticated = false;
+      state.refreshToken = null;
     },
   },
 });
 
-export const { saveUserData, saveToken, logout } = userDataSlice.actions;
+export const { saveUserData, saveToken, saveRefreshToken, logout } =
+  userDataSlice.actions;
 export default userDataSlice.reducer;

@@ -4,6 +4,7 @@ import * as Clipboard from "expo-clipboard";
 import { File, Paths } from "expo-file-system";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Sharing from "expo-sharing";
+import { useSelector } from "react-redux";
 import {
   Copy,
   Link1,
@@ -20,19 +21,39 @@ import { TopBar } from "@/components/app/TopBar";
 import { ThemeColors } from "@/constant/theme";
 import AppText from "@/components/ui/AppText";
 
+function getParamValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 export default function RequestCreatedScreen() {
   const [copied, setCopied] = useState(false);
-  const params = useLocalSearchParams<{
-    title?: string;
-    amount?: string;
-    description?: string;
-    reference?: string;
-  }>();
-  const title = params.title || "Payment request";
-  const amount = params.amount || "0";
-  const description = params.description?.trim();
-  const reference = params.reference || "REQUEST";
-  const paymentUrl = `https://sendam.co/pay/${reference}`;
+  const { userDetails } = useSelector((state: any) => state?.user);
+  const params = useLocalSearchParams();
+  const title = getParamValue(params.title) || "Payment request";
+  const amount = getParamValue(params.amount) || "0";
+  const description = getParamValue(params.description)?.trim();
+  const reference = getParamValue(params.reference) || "REQUEST";
+  const paymentUrl =
+    getParamValue(params.paymentUrl) || `https://sendam.co/pay/${reference}`;
+  const expectedPayerName = getParamValue(params.expectedPayerName)?.trim();
+  const status = getParamValue(params.status) || "ACTIVE";
+  const expiresAt = getParamValue(params.expiresAt)
+    ? new Date(getParamValue(params.expiresAt) as string)
+    : null;
+  const formattedExpiry = expiresAt
+    ? expiresAt.toLocaleDateString("en-NG", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
+  const creatorName = [userDetails?.firstName, userDetails?.lastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  const shareHeader = creatorName
+    ? `You have a payment request of ₦${amount} from ${creatorName}`
+    : `You have a payment request of ₦${amount}`;
 
   const copyPaymentLink = async () => {
     try {
@@ -40,22 +61,28 @@ export default function RequestCreatedScreen() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      Alert.alert("Unable to copy", "Please try copying the payment link again.");
+      Alert.alert(
+        "Unable to copy",
+        "Please try copying the payment link again.",
+      );
     }
   };
 
   const shareRequest = async () => {
     try {
       if (!(await Sharing.isAvailableAsync())) {
-        Alert.alert("Sharing unavailable", "Sharing is not supported on this device.");
+        Alert.alert(
+          "Sharing unavailable",
+          "Sharing is not supported on this device.",
+        );
         return;
       }
 
       const shareText = [
-        title,
-        `Amount: ₦${amount}`,
+        shareHeader,
+        title !== shareHeader ? title : null,
         description,
-        `Pay here: ${paymentUrl}`,
+        paymentUrl,
       ]
         .filter(Boolean)
         .join("\n");
@@ -73,8 +100,15 @@ export default function RequestCreatedScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: ThemeColors.white }}>
-      <TopBar title="Payment Link Ready" showBack onBackPress={() => router.replace("/request/new")} />
+    <SafeAreaView
+      className="flex-1"
+      style={{ backgroundColor: ThemeColors.white }}
+    >
+      <TopBar
+        title="Payment Link Ready"
+        showBack
+        onBackPress={() => router.back()}
+      />
       <ScrollView
         className="flex-1 px-[19px]"
         showsVerticalScrollIndicator={false}
@@ -118,9 +152,16 @@ export default function RequestCreatedScreen() {
         <View className="mt-[16px] flex-row items-center">
           <View
             className="h-[53px] flex-1 justify-center rounded-[12px] border px-[12px]"
-            style={{ borderColor: ThemeColors.mist, backgroundColor: ThemeColors.snow }}
+            style={{
+              borderColor: ThemeColors.mist,
+              backgroundColor: ThemeColors.snow,
+            }}
           >
-            <AppText font="SR" size={14} style={{ color: ThemeColors.deepGreen }}>
+            <AppText
+              font="SR"
+              size={14}
+              style={{ color: ThemeColors.deepGreen }}
+            >
               {paymentUrl.replace("https://", "")}
             </AppText>
           </View>
@@ -135,8 +176,29 @@ export default function RequestCreatedScreen() {
           </Pressable>
         </View>
 
+        <View
+          className="mt-[16px] rounded-[16px] border px-[16px] py-[14px]"
+          style={{
+            borderColor: ThemeColors.mist,
+            backgroundColor: ThemeColors.snow,
+          }}
+        >
+          <DetailRow label="Reference" value={reference} />
+          <DetailRow label="Status" value={status} />
+          {expectedPayerName ? (
+            <DetailRow label="Expected payer" value={expectedPayerName} />
+          ) : null}
+          {formattedExpiry ? (
+            <DetailRow label="Expires" value={formattedExpiry} />
+          ) : null}
+        </View>
+
         <View className="mt-[16px] flex-row justify-around">
-          <ShareAction label="WhatsApp" Icon={Whatsapp} onPress={shareRequest} />
+          <ShareAction
+            label="WhatsApp"
+            Icon={Whatsapp}
+            onPress={shareRequest}
+          />
           <ShareAction
             label={copied ? "Copied" : "Copy Link"}
             Icon={Link1}
@@ -169,6 +231,19 @@ export default function RequestCreatedScreen() {
         </Pressable>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View className="flex-row items-center justify-between py-[6px]">
+      <AppText font="SR" size={12} style={{ color: ThemeColors.sage }}>
+        {label}
+      </AppText>
+      <AppText font="SB" size={13} style={{ color: ThemeColors.deepGreen }}>
+        {value}
+      </AppText>
+    </View>
   );
 }
 

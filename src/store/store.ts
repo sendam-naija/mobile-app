@@ -4,11 +4,13 @@ import { persistStore, persistReducer } from "redux-persist";
 import { combineReducers } from "redux";
 import userDetailsReducer from "./userDetails";
 import { onboardingApi } from "@/services/onboarding.services";
+import { paymentApi } from "@/services/payment.services";
 import { userApi } from "@/services/user.services";
 
 const rootReducer = combineReducers({
   user: userDetailsReducer,
   [onboardingApi.reducerPath]: onboardingApi.reducer,
+  [paymentApi.reducerPath]: paymentApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
 });
 
@@ -26,8 +28,9 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: false,
       immutableCheck: false,
-    })
+      })
       .concat(onboardingApi.middleware)
+      .concat(paymentApi.middleware)
       .concat(userApi.middleware),
 });
 

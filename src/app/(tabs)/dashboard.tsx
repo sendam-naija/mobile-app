@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { Pressable, View } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import {
   ArrowRight,
   ArrowUp,
@@ -13,6 +13,7 @@ import {
 
 import { AppShell } from "@/components/app/AppShell";
 import AppText from "@/components/ui/AppText";
+import usePayments from "@/hooks/usePayments";
 import { useSelector } from "react-redux";
 import initializeName from "@/helper/initializeName";
 
@@ -30,33 +31,80 @@ const palette = {
   white: "#FFFFFF",
 };
 
-const activities = [
-  {
-    initial: "T",
-    title: "Dinner at Yellow Chilli",
-    subtitle: "Tunde · 5 min ago",
-    amount: "+₦12,500",
-    color: "#DDF5E5",
-  },
-  {
-    initial: "N",
-    title: "House rent",
-    subtitle: "Nkechi · 2 hrs ago",
-    amount: "+₦75,000",
-    color: "#CDEED8",
-  },
-  {
-    initial: "S",
-    title: "Weekend trip",
-    subtitle: "Sola · Yesterday",
-    amount: "+₦37,500",
-    color: "#E7F4EB",
-  },
-];
+function formatCurrency(amount?: number) {
+  return `₦${(amount ?? 0).toLocaleString("en-NG")}`;
+}
+
+function getCreatedAtLabel(createdAt?: string) {
+  if (!createdAt) return "";
+
+  const date = new Date(createdAt);
+  const now = new Date();
+  const sameDay =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate();
+
+  if (sameDay) {
+    return date.toLocaleTimeString("en-NG", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
+  return date.toLocaleDateString("en-NG", {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function getSectionTitle(createdAt?: string) {
+  if (!createdAt) return "OLDER";
+
+  const date = new Date(createdAt);
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+
+  const sameDay =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate();
+  const isYesterday =
+    date.getFullYear() === yesterday.getFullYear() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getDate() === yesterday.getDate();
+
+  if (sameDay) return "TODAY";
+  if (isYesterday) return "YESTERDAY";
+  return "OLDER";
+}
 
 export default function DashboardScreen() {
-  const { userDetails, token } = useSelector((state: any) => state?.user);
-  console.log({ token });
+  const { userDetails, token, refreshToken } = useSelector(
+    (state: any) => state?.user,
+  );
+  const { paymentRequests, paymentRequestsRefetch } = usePayments();
+  useFocusEffect(
+    useCallback(() => {
+      void paymentRequestsRefetch();
+    }, [paymentRequestsRefetch]),
+  );
+  const recentRequests = [...paymentRequests]
+    .sort(
+      (left, right) =>
+        new Date(right.createdAt || 0).getTime() -
+        new Date(left.createdAt || 0).getTime(),
+    )
+    .slice(0, 3);
+  const recentActivity = recentRequests.map((item) => ({
+    initial: (item.expectedPayerName || item.title || "R").trim().charAt(0).toUpperCase(),
+    title: item.title || "Payment request",
+    subtitle: `${item.expectedPayerName || "Unassigned"} · ${getCreatedAtLabel(item.createdAt as string)}`,
+    amount: formatCurrency(item.amount),
+    color: "#E7F4EB",
+    id: item.id,
+  }));
   return (
     <AppShell
       withBottomTabs={false}
@@ -253,9 +301,9 @@ export default function DashboardScreen() {
       </View>
 
       <View className="mt-[13px] mb-[8px]">
-        {activities.map((item, index) => (
+        {recentActivity.length ? recentActivity.map((item, index) => (
           <View
-            key={item.title}
+            key={item.id}
             className="flex-row items-center py-[13px]"
             style={
               index
@@ -293,7 +341,11 @@ export default function DashboardScreen() {
               {item.amount}
             </AppText>
           </View>
-        ))}
+        )) : (
+          <AppText font="SR" size={12} style={{ color: palette.muted }}>
+            No recent payment requests yet.
+          </AppText>
+        )}
       </View>
     </AppShell>
   );

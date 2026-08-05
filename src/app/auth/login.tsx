@@ -34,7 +34,7 @@ export default function LoginScreen() {
       const res = await logIn(data).unwrap();
 
       if (res?.success) {
-        dispatch(saveUserData(res?.data?.user));
+        dispatch(saveUserData(res?.data));
         dispatch(saveToken(res?.data?.accessToken));
         handleSuccess("Login Successful!");
         router.replace("/dashboard");

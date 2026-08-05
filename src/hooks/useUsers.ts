@@ -1,6 +1,7 @@
 import {
   useGetAllBanksQuery,
   useSetSettlementBankMutation,
+  useValidateAccountMutation,
 } from "@/services/user.services";
 
 const useUsers = () => {
@@ -12,6 +13,9 @@ const useUsers = () => {
     refetch: bankRefetch,
   } = useGetAllBanksQuery();
 
+  const [validateAccount, { isLoading: validateAccountIsLoading }] =
+    useValidateAccountMutation();
+
   const [setSettlementBank, { isLoading: setSettlementBankIsLoading }] =
     useSetSettlementBankMutation();
   return {
@@ -22,6 +26,8 @@ const useUsers = () => {
     bankRefetch,
     setSettlementBank,
     setSettlementBankIsLoading,
+    validateAccount,
+    validateAccountIsLoading,
   };
 };
 
